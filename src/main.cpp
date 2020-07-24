@@ -1,9 +1,31 @@
 #include <pcap.h>
 #include <stdio.h>
 
+struct ether_header{
+    u_int8_t dest[6];
+    u_int8_t src[6];
+    u_int8_t type[2];
+};
+
 void usage() {
     printf("syntax: pcap-test <interface>\n");
     printf("sample: pcap-test wlan0\n");
+}
+
+
+void print(int size, u_int8_t *text){
+    for(int i = 0; i < size; i++) printf("%02x ", text[i]);
+    printf("\n");
+}
+
+ether_header getEther(const u_char *packet){
+    ether_header ether;
+    for(int i = 0; i < 6; i++) ether.dest[i] = packet[i];
+    for(int i = 0; i < 6; i++) ether.src[i] = packet[i+6];
+    ether.type[0] = packet[12];
+    ether.type[1] = packet[13];
+
+    return ether;
 }
 
 int main(int argc, char* argv[]) {
@@ -30,15 +52,18 @@ int main(int argc, char* argv[]) {
             break;
         }
         printf("%u bytes captured\n", header->caplen);
+        ether_header ether = getEther(packet);
 
-        int index = 0;
+        // Ethernet Header type isn't 0x0800 then Pass the packet
+        if(!(ether.type[0] == 0x08 && ether.type[1] == 0x00)) continue;
+
         printf("Ethernet : \n");
-        printf("dst mac : ");
-        while(index < 6) printf("%02x ", *(packet+index++));
-        printf("\n");
-        printf("src mac :");
-        while(index < 12) printf("%02x ", *(packet+index++));
-        printf("\n");
+        printf("dest mac : ");
+        print(sizeof(ether.dest), ether.dest);
+        printf("src mac : ");
+        print(sizeof(ether.src), ether.src);
+        printf("type : ");
+        print(sizeof(ether.type), ether.type);
     }
 
     pcap_close(handle);
