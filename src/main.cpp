@@ -1,31 +1,18 @@
 #include <pcap.h>
 #include <stdio.h>
-
-struct ether_header{
-    u_int8_t dest[6];
-    u_int8_t src[6];
-    u_int8_t type[2];
-};
+#include "mylibnet.h"
 
 void usage() {
     printf("syntax: pcap-test <interface>\n");
     printf("sample: pcap-test wlan0\n");
 }
 
-
-void print(int size, u_int8_t *text){
-    for(int i = 0; i < size; i++) printf("%02x ", text[i]);
+void print(int size, u_int8_t *text, bool isHex){
+    if(isHex)
+        for(int i = 0; i < size; i++) printf("%02x ", text[i]);
+    else
+        for(int i = 0; i < size; i++) printf(i == size -1? "%d" : "%d.", text[i]);
     printf("\n");
-}
-
-ether_header getEther(const u_char *packet){
-    ether_header ether;
-    for(int i = 0; i < 6; i++) ether.dest[i] = packet[i];
-    for(int i = 0; i < 6; i++) ether.src[i] = packet[i+6];
-    ether.type[0] = packet[12];
-    ether.type[1] = packet[13];
-
-    return ether;
 }
 
 int main(int argc, char* argv[]) {
@@ -59,11 +46,20 @@ int main(int argc, char* argv[]) {
 
         printf("Ethernet : \n");
         printf("dest mac : ");
-        print(sizeof(ether.dest), ether.dest);
+        print(sizeof(ether.dest), ether.dest, 1);
         printf("src mac : ");
-        print(sizeof(ether.src), ether.src);
+        print(sizeof(ether.src), ether.src, 1);
         printf("type : ");
-        print(sizeof(ether.type), ether.type);
+        print(sizeof(ether.type), ether.type, 1);
+
+        printf("IP : \n");
+        printf("src ip : ");
+        ip_header ip = getIp(packet);
+        print(sizeof(ip.src), ip.src, 0);
+        printf("dest ip ; ");
+        print(sizeof(ip.dest), ip.dest, 0);
+
+
     }
 
     pcap_close(handle);
