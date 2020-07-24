@@ -40,9 +40,11 @@ int main(int argc, char* argv[]) {
         }
         printf("%u bytes captured\n", header->caplen);
         ether_header ether = getEther(packet);
+        ip_header ip = getIp(packet);
 
         // Ethernet Header type isn't 0x0800 then Pass the packet
         if(!(ether.type[0] == 0x08 && ether.type[1] == 0x00)) continue;
+        else if(ip.protocol != 0x06) continue;
 
         printf("Ethernet : \n");
         printf("dest mac : ");
@@ -54,11 +56,11 @@ int main(int argc, char* argv[]) {
 
         printf("IP : \n");
         printf("src ip : ");
-        ip_header ip = getIp(packet);
         print(sizeof(ip.src), ip.src, 0);
         printf("dest ip ; ");
         print(sizeof(ip.dest), ip.dest, 0);
 
+        tcp_header tcp = getTcp(packet, ip.length);
 
     }
 
