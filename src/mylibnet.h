@@ -1,7 +1,5 @@
 #include <pcap.h>
 
-#ifndef MYLIBNET_H
-#define MYLIBNET_H
 struct ether_header{
     u_int8_t dest[6];
     u_int8_t src[6];
@@ -58,5 +56,3 @@ tcp_header getTcp(const u_char *packet, int ipLen){
 
     return tcp;
 }
-#endif // MYLIBNET_H
-

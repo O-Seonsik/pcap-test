@@ -50,33 +50,34 @@ int main(int argc, char* argv[]) {
             printf("pcap_next_ex return %d(%s)\n", res, pcap_geterr(handle));
             break;
         }
-        printf("%u bytes captured\n", header->caplen);
+
         ether_header ether = getEther(packet);
         ip_header ip = getIp(packet);
         tcp_header tcp = getTcp(packet, ip.length);
 
-        // Ethernet Header type isn't 0x0800 then Pass the packet
         if(!(ether.type[0] == 0x08 && ether.type[1] == 0x00)) continue; // if the packet isn't ipv4 then pass
         else if(ip.protocol != 0x06) continue;  // if the packet ins't TCP then pass
 
-        printf("Ethernet : \n");
+        printf("\n%u bytes captured\n", header->caplen);
+        printf("\nEthernet\n");
         printf("dest mac : ");
         print(sizeof(ether.dest), ether.dest, 1);
         printf("src mac : ");
         print(sizeof(ether.src), ether.src, 1);
 
-        printf("IP : \n");
+        printf("\nIP\n");
         printf("src ip : ");
         print(sizeof(ip.src), ip.src, 0);
         printf("dest ip : ");
         print(sizeof(ip.dest), ip.dest, 0);
 
-        printf("TCP : \n");
+        printf("\nTCP\n");
         printf("src port : %d\n", tcp.src);
         printf("dest port : %d\n", tcp.dest);
 
-        printf("payload : ");
-        printPayload(14 + ip.length + tcp.length, header->caplen, packet);
+        printf("\npayload : ");
+        printPayload(14 + ip.length + tcp.length, 14+ip.totalLen, packet);
+        printf("\n-----------------------------------------\n");
     }
 
     pcap_close(handle);
