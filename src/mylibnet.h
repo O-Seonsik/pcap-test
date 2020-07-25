@@ -14,6 +14,7 @@ struct ip_header{
     u_int8_t protocol;
     u_int8_t src[4];
     u_int8_t dest[4];
+    u_int16_t totalLen;
 };
 
 struct tcp_header{
@@ -36,6 +37,7 @@ ip_header getIp(const u_char *packet){
     ip_header ip;
     ip.version = (packet[14] & 0xf0) >> 4;
     ip.length = (packet[14] & 0x0f) * 4;
+    ip.totalLen = (packet[16] << 8) | packet[17];
     int srcLoc = 14 + (ip.length) - 8;
     int destLoc = 14 + (ip.length) - 4;
     for(int i = 0; i < 4; i++) ip.src[i] = packet[srcLoc+i];

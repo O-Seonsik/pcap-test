@@ -7,6 +7,18 @@ void usage() {
     printf("sample: pcap-test wlan0\n");
 }
 
+void printPayload(int begin, int end, const u_char *packet){
+    int index = 1;
+    if(begin + 15 > end)
+        for(int i = begin; i < end; i++)
+            printf(index++ % 8 ? "%02x " : "%02x  ", packet[i]);
+    else
+        for(int i = begin; i < begin + 16; i++)
+            printf(index++ % 8 ? "%02x " : "%02x  ", packet[i]);
+
+    printf("\n");
+}
+
 void print(int size, u_int8_t *text, bool isHex){
     if(isHex)
         for(int i = 0; i < size; i++) printf("%02x ", text[i]);
@@ -41,30 +53,30 @@ int main(int argc, char* argv[]) {
         printf("%u bytes captured\n", header->caplen);
         ether_header ether = getEther(packet);
         ip_header ip = getIp(packet);
+        tcp_header tcp = getTcp(packet, ip.length);
 
         // Ethernet Header type isn't 0x0800 then Pass the packet
-        if(!(ether.type[0] == 0x08 && ether.type[1] == 0x00)) continue;
-        else if(ip.protocol != 0x06) continue;
+        if(!(ether.type[0] == 0x08 && ether.type[1] == 0x00)) continue; // if the packet isn't ipv4 then pass
+        else if(ip.protocol != 0x06) continue;  // if the packet ins't TCP then pass
 
         printf("Ethernet : \n");
         printf("dest mac : ");
         print(sizeof(ether.dest), ether.dest, 1);
         printf("src mac : ");
         print(sizeof(ether.src), ether.src, 1);
-        printf("type : ");
-        print(sizeof(ether.type), ether.type, 1);
 
         printf("IP : \n");
         printf("src ip : ");
         print(sizeof(ip.src), ip.src, 0);
         printf("dest ip : ");
         print(sizeof(ip.dest), ip.dest, 0);
-        printf("protocol : %02x\n", ip.protocol);
 
-        tcp_header tcp = getTcp(packet, ip.length);
         printf("TCP : \n");
         printf("src port : %d\n", tcp.src);
         printf("dest port : %d\n", tcp.dest);
+
+        printf("payload : ");
+        printPayload(14 + ip.length + tcp.length, header->caplen, packet);
     }
 
     pcap_close(handle);
