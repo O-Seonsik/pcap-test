@@ -40,6 +40,7 @@ ip_header getIp(const u_char *packet){
     int destLoc = 14 + (ip.length) - 4;
     for(int i = 0; i < 4; i++) ip.src[i] = packet[srcLoc+i];
     for(int i = 0; i < 4; i++) ip.dest[i] = packet[destLoc+i];
+    ip.protocol = packet[23];
 
     return ip;
 }
@@ -49,14 +50,10 @@ tcp_header getTcp(const u_char *packet, int ipLen){
     tcp_header tcp;
     int srcLoc = 14 + ipLen;
     int destLoc = srcLoc + 2;
+    tcp.src = packet[srcLoc] << 8 | packet[srcLoc+1];
+    tcp.dest = packet[destLoc] << 8 | packet[destLoc+1];
+    tcp.length = (packet[srcLoc + 12] >> 4) * 4;
 
-    tcp.src = (u_int16_t(packet[srcLoc]) << 4) & u_int16_t(packet[srcLoc+1]);
-    tcp.dest = (u_int16_t(packet[destLoc]) << 4) & u_int16_t(packet[destLoc+1]);
-    printf("%d\n", tcp.src);
-    printf("%d\n", tcp.dest);
-
-    tcp.length = packet[srcLoc + 13];
-    printf("%d\n", tcp.length);
     return tcp;
 }
 #endif // MYLIBNET_H

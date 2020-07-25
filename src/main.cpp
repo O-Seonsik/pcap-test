@@ -57,11 +57,14 @@ int main(int argc, char* argv[]) {
         printf("IP : \n");
         printf("src ip : ");
         print(sizeof(ip.src), ip.src, 0);
-        printf("dest ip ; ");
+        printf("dest ip : ");
         print(sizeof(ip.dest), ip.dest, 0);
+        printf("protocol : %02x\n", ip.protocol);
 
         tcp_header tcp = getTcp(packet, ip.length);
-
+        printf("TCP : \n");
+        printf("src port : %d\n", tcp.src);
+        printf("dest port : %d\n", tcp.dest);
     }
 
     pcap_close(handle);
